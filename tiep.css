@@ -1,0 +1,198 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  height: 100%;
+  overflow: hidden;   /* tránh lộ viền khi nền phóng to nhẹ */
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Lớp nền riêng để "thở" độc lập, không ảnh hưởng nội dung bên trên */
+.bg-breathing {
+  position: fixed;
+  inset: -5%;   /* rộng hơn màn hình 1 chút để hiệu ứng phóng to/parallax không lộ viền */
+  z-index: -1;
+
+  /* ============================================================
+     SỬA DÒNG DƯỚI ĐÂY: thay "images/bg.jpg" bằng đường dẫn ảnh của bạn.
+     - Nếu ảnh để CHUNG thư mục với style.css      -> url("bg.jpg")
+     - Nếu ảnh để trong thư mục con "images/"       -> url("images/bg.jpg")
+     - Chú ý viết đúng hoa/thường và đúng đuôi file (.jpg, .png, .webp...)
+     ============================================================ */
+  background-image: url("anh.png/background.png");
+
+  background-size: cover;       /* ảnh phủ kín toàn màn hình, không méo */
+  background-position: center;  /* canh giữa ảnh */
+  background-repeat: no-repeat; /* không lặp ảnh */
+
+  /* transform/filter sẽ do JS tính toán liên tục (hiệu ứng thở + parallax), không cần @keyframes ở đây */
+  will-change: transform, filter;
+}
+
+/* Canvas chứa hạt lửa/tro bay lên */
+#embers {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;   /* không chặn click vào menu/link phía trên */
+}
+
+/* Vầng sáng đỏ nhấp nháy như tim đập, đặt giữa màn hình (vị trí ngực quái vật) */
+.red-glow {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 500px;
+  height: 500px;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle,
+    rgba(200, 20, 20, 0.35) 0%,
+    rgba(200, 20, 20, 0.12) 40%,
+    rgba(200, 20, 20, 0) 70%);
+  z-index: 0;
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+/* Lớp chớp trắng toàn màn hình, dùng cho hiệu ứng sấm chớp ngẫu nhiên */
+.lightning-flash {
+  position: fixed;
+  inset: 0;
+  z-index: 5;              /* nằm trên cả header để chớp phủ toàn màn hình */
+  background: #fff;
+  opacity: 0;               /* mặc định vô hình, JS sẽ tăng/giảm opacity khi chớp */
+  pointer-events: none;     /* không chặn click */
+}
+
+/* Rung nhẹ khi hover vào menu - áp cho toàn bộ nền để cảm giác "cả trang bị đánh thức" */
+@keyframes shakeBg {
+  0%   { margin-left: 0; }
+  20%  { margin-left: -4px; }
+  40%  { margin-left: 4px; }
+  60%  { margin-left: -3px; }
+  80%  { margin-left: 3px; }
+  100% { margin-left: 0; }
+}
+
+.bg-breathing.shake {
+  animation: shakeBg 0.35s ease;
+}
+
+/* Dòng chữ hiện giữa màn hình rồi tự ẩn sau vài giây (điều khiển bằng setTimeout trong JS) */
+.center-text {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 4;                 /* trên nền/glow/lửa, dưới lightning-flash (z-index 5) */
+  color: #fff;
+  font-size: 32px;
+  font-weight: bold;
+  text-shadow: 0 0 12px rgba(200, 20, 20, 0.8), 0 0 30px rgba(200, 20, 20, 0.5);
+  letter-spacing: 2px;
+  text-align: center;
+  opacity: 0;                 /* mặc định ẩn, JS bật/tắt bằng class .show */
+  pointer-events: none;
+  transition: opacity 1s ease;  /* fade mượt khi hiện/ẩn, không bật tắt đột ngột */
+}
+
+.center-text.show {
+  opacity: 1;
+}
+.top-bar {
+  height: 6px;
+  background: linear-gradient(to right,
+    #4a90d9 0%, #f5c518 25%, #ec4899 50%, #3b82f6 75%, #4a90d9 100%);
+}
+
+/* 2. Header chính: logo + menu */
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 30px;
+  position: relative;
+  z-index: 2;
+}
+
+.logo {
+  font-size: 34px;
+  font-weight: bold;
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #1565c0;
+}
+
+.logo .vn {
+  color: #4caf50;
+  font-style: italic;
+  font-size: 20px;
+  vertical-align: middle;
+}
+
+/* 3. Menu icon */
+.menu {
+  display: flex;
+}
+
+.menu-item {
+  position: relative;
+  width: 92px;
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  gap: 4px;
+  text-decoration: none;
+}
+
+.menu-item .icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.windows     { background: #2196f3; }
+.android     { background: #4caf50; }
+.ios         { background: #9e9e9e; }
+.winphone    { background: #f4436c; }
+.mobiletips  { background: #ff9800; }
+.thuthuat    { background: #1565c0; }
+
+.menu-item:hover {
+  filter: brightness(1.1);
+}
+
+/* 4. Mũi tên chỉ trạng thái active (dùng cho ô Windows) */
+.menu-item.active::after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid #2196f3; /* trùng màu nền ô đang active */
+  z-index: 2;
+}
+
+/* 5. Nhãn "Tiêu điểm" hình mũi tên bằng clip-path */
+.tieu-diem {
+  display: inline-block;
+  background: #757575;
+  color: #fff;
+  font-weight: bold;
+  padding: 10px 30px 10px 16px;
+  font-size: 13px;
+  margin: 30px 0 0 30px;
+  clip-path: polygon(0 0, 85% 0, 100% 50%, 85% 100%, 0 100%);
+  position: relative;
+  z-index: 2;
+}
